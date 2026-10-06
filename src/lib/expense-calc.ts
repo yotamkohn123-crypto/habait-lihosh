@@ -62,12 +62,21 @@ export function computeDonutSegments(expenses: Expense[], totalSpent: number): D
 export interface FixedBillStatus {
   name: string;
   icon: string;
+  dueDay: number;
   expense: Expense | null;
+  lastMonthAmount: number | null;
 }
 
-export function computeFixedBillsStatus(expenses: Expense[]): FixedBillStatus[] {
-  return FIXED_BILLS.map((bill) => ({
-    ...bill,
-    expense: expenses.find((e) => e.title === bill.name) ?? null,
-  }));
+export function computeFixedBillsStatus(
+  expenses: Expense[],
+  lastMonthExpenses: Expense[] = []
+): FixedBillStatus[] {
+  return FIXED_BILLS.map((bill) => {
+    const lastMonthExpense = lastMonthExpenses.find((e) => e.title === bill.name) ?? null;
+    return {
+      ...bill,
+      expense: expenses.find((e) => e.title === bill.name) ?? null,
+      lastMonthAmount: lastMonthExpense ? Number(lastMonthExpense.amount) : null,
+    };
+  });
 }

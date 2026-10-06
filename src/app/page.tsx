@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase/client";
 import { useIdentity } from "@/lib/identity-context";
 import { useOnlinePresence } from "@/lib/use-presence";
 import { useMonthlyExpenses } from "@/lib/use-monthly-expenses";
+import { useLastMonthRecurring } from "@/lib/use-last-month-recurring";
+import { useAppSettings } from "@/lib/use-app-settings";
 import { computeMemberTotals, computeDonutSegments, computeFixedBillsStatus } from "@/lib/expense-calc";
 import { relativeTime } from "@/lib/time";
 import { ShoppingItem, Chore, FridgeNote, CalendarEvent } from "@/lib/types";
@@ -23,6 +25,8 @@ export default function HomePage() {
   const { identity, setIdentity, members } = useIdentity();
   const onlineCount = useOnlinePresence();
   const { expenses, loading: expensesLoading } = useMonthlyExpenses();
+  const lastMonthRecurring = useLastMonthRecurring();
+  const { settings } = useAppSettings();
 
   const [loading, setLoading] = useState(true);
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
@@ -102,7 +106,11 @@ export default function HomePage() {
 
   const { totalSpent, memberTotals } = computeMemberTotals(expenses, members);
   const donutSegments = computeDonutSegments(expenses, totalSpent);
-  const fixedBillsStatus = computeFixedBillsStatus(expenses);
+  const fixedBillsStatus = computeFixedBillsStatus(expenses, lastMonthRecurring);
+  const fixedTotal = fixedBillsStatus.reduce(
+    (sum, b) => sum + (b.expense ? Number(b.expense.amount) : 0),
+    0
+  );
   const recentExpenses = expenses.slice(0, 4);
 
   const monthLabel = new Date().toLocaleDateString("he-IL", { month: "long" });
@@ -163,15 +171,15 @@ export default function HomePage() {
             onClick={() => openAddExpense()}
             className="flex items-center gap-1 bg-primary text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm active:scale-95 transition"
           >
-            <span>+</span>
-            <span>הוצאה</span>
+            <span>הוסיפי הוצאה</span>
           </button>
         </div>
 
         <NotificationPrompt />
 
         <ExpenseSummaryCard
-          totalSpent={totalSpent}
+          monthlyIncome={settings.monthly_income}
+          fixedTotal={fixedTotal}
           memberTotals={memberTotals}
           monthLabel={monthLabel}
           linkToExpenses
@@ -181,6 +189,7 @@ export default function HomePage() {
 
         <FixedBillsCard
           bills={fixedBillsStatus}
+          helperName={settings.helper_name}
           onPayClick={(bill) => openAddExpense({ title: bill.name, category: "בית" })}
         />
 

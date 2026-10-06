@@ -25,9 +25,9 @@ export const EXPENSE_HEX_COLORS: Record<string, string> = {
 };
 
 export const FIXED_BILLS = [
-  { name: "שכר דירה", icon: "🏠" },
-  { name: "חשמל", icon: "⚡" },
-  { name: "מים", icon: "💧" },
-  { name: "גז", icon: "🔥" },
-  { name: "ארנונה", icon: "🏛️" },
+  { name: "שכר דירה", icon: "🏠", dueDay: 1 },
+  { name: "חשמל", icon: "⚡", dueDay: 10 },
+  { name: "מים", icon: "💧", dueDay: 10 },
+  { name: "גז", icon: "🔥", dueDay: 10 },
+  { name: "ארנונה", icon: "🏛️", dueDay: 15 },
 ];

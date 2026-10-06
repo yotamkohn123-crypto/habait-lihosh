@@ -65,3 +65,12 @@ export interface CalendarEvent {
 
 export const MONTHLY_BUDGET = 12000;
 export const SHARED_FUND_LABEL = "קופה משותפת";
+
+export interface AppSettings {
+  id: number;
+  monthly_income: number;
+  weekly_budget: number;
+  show_money_analogies: boolean;
+  helper_name: string | null;
+  meal_reminder_time: string | null;
+}

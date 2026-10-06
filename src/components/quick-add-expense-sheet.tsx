@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useIdentity } from "@/lib/identity-context";
-import { EXPENSE_CATEGORIES, EXPENSE_ICONS } from "@/lib/expense-categories";
+import { EXPENSE_CATEGORIES } from "@/lib/expense-categories";
 import { SHARED_FUND_LABEL } from "@/lib/types";
 
 export interface ExpensePrefill {
@@ -65,10 +65,10 @@ export default function QuickAddExpenseSheet({
       >
         <div className="flex items-center justify-between pb-3 border-b border-stone-200">
           <h3 className="text-sm font-bold text-stone-900">
-            {isFixedBill ? `רישום תשלום: ${title}` : "הוספת הוצאה שוטפת"}
+            {isFixedBill ? `רישום תשלום: ${title}` : "הוספת הוצאה"}
           </h3>
           <button onClick={onClose} className="text-stone-400 text-sm font-bold">
-            ✕
+            סגרי ✕
           </button>
         </div>
 
@@ -76,12 +76,12 @@ export default function QuickAddExpenseSheet({
           {!isFixedBill && (
             <div>
               <label className="text-xs font-semibold text-stone-600 block mb-1">
-                מה קניתם / שילמתם?
+                על מה?
               </label>
               <input
                 type="text"
                 required
-                placeholder="למשל: סופר פארם, דלק, מסעדה..."
+                placeholder="למשל: לחם, אוטובוס, תספורת"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full h-11 rounded-2xl border border-stone-300 bg-white px-3.5 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-primary"
@@ -90,7 +90,7 @@ export default function QuickAddExpenseSheet({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className={isFixedBill ? "grid grid-cols-2 gap-2" : ""}>
             <div>
               <label className="text-xs font-semibold text-stone-600 block mb-1">סכום (₪)</label>
               <input
@@ -104,50 +104,30 @@ export default function QuickAddExpenseSheet({
               />
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-stone-600 block mb-1">מי שילם?</label>
-              <select
-                value={paidBy}
-                onChange={(e) => setPaidBy(e.target.value)}
-                className="w-full h-11 rounded-2xl border border-stone-300 bg-white px-3 text-xs text-stone-800 focus:outline-none focus:border-primary"
-              >
-                {members.map((m) => (
-                  <option key={m.id} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
-                <option value={SHARED_FUND_LABEL}>{SHARED_FUND_LABEL} 🏠</option>
-              </select>
-            </div>
-          </div>
-
-          {!isFixedBill && (
-            <div>
-              <label className="text-xs font-semibold text-stone-600 block mb-1">קטגוריה</label>
-              <div className="flex flex-wrap gap-1.5">
-                {EXPENSE_CATEGORIES.map((c) => (
-                  <button
-                    type="button"
-                    key={c}
-                    onClick={() => setCategory(c)}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition ${
-                      category === c
-                        ? "bg-primary text-white"
-                        : "bg-white border border-stone-200 text-stone-600"
-                    }`}
-                  >
-                    {EXPENSE_ICONS[c]} {c}
-                  </button>
-                ))}
+            {isFixedBill && (
+              <div>
+                <label className="text-xs font-semibold text-stone-600 block mb-1">מי שילם?</label>
+                <select
+                  value={paidBy}
+                  onChange={(e) => setPaidBy(e.target.value)}
+                  className="w-full h-11 rounded-2xl border border-stone-300 bg-white px-3 text-xs text-stone-800 focus:outline-none focus:border-primary"
+                >
+                  {members.map((m) => (
+                    <option key={m.id} value={m.name}>
+                      {m.name}
+                    </option>
+                  ))}
+                  <option value={SHARED_FUND_LABEL}>{SHARED_FUND_LABEL} 🏠</option>
+                </select>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           <button
             type="submit"
             className="w-full mt-2 rounded-2xl bg-primary py-3 text-xs font-bold text-white shadow-md transition"
           >
-            + שמור הוצאה
+            {isFixedBill ? "שמרי תשלום" : "שמרי הוצאה"}
           </button>
         </form>
       </div>
