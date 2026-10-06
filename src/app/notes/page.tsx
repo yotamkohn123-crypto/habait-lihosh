@@ -28,6 +28,7 @@ export default function NotesPage() {
   const [reactions, setReactions] = useState<NoteReaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const [content, setContent] = useState("");
   const [emoji, setEmoji] = useState(NOTE_EMOJIS[0]);
@@ -93,6 +94,7 @@ export default function NotesPage() {
 
   async function deleteNote(id: string) {
     await supabase.from("fridge_notes").delete().eq("id", id);
+    setConfirmDeleteId(null);
   }
 
   async function toggleReaction(noteId: string, reactionEmoji: string) {
@@ -175,13 +177,13 @@ export default function NotesPage() {
           <div className="rounded-3xl bg-white p-4 shadow-sm border border-stone-200/80 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-stone-800">
-                השארת פתק חם על המקרר 💌
+                השאירי פתק על המקרר
               </span>
               <button
                 onClick={() => setFormOpen(true)}
                 className="rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-sm active:scale-95 transition"
               >
-                + כתוב פתק
+                כתבי פתק
               </button>
             </div>
 
@@ -213,14 +215,14 @@ export default function NotesPage() {
                 onClick={() => setFormOpen(false)}
                 className="text-stone-400 text-xs font-bold"
               >
-                ביטול ✕
+                סגרי ✕
               </button>
             </div>
 
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="כתבו משהו מתוק, תזכורת או נשיקה..."
+              placeholder="כתבי הודעה אישית, תזכורת, או משהו נחמד..."
               rows={3}
               autoFocus
               className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 p-3 text-xs text-stone-800 placeholder-stone-400 outline-none focus:border-primary focus:bg-white resize-none"
@@ -263,7 +265,7 @@ export default function NotesPage() {
               type="submit"
               className="w-full rounded-2xl bg-primary py-2.5 text-xs font-bold text-white shadow-sm active:scale-95 transition"
             >
-              הדבקה על המקרר 📌
+              הדביקי על המקרר 📌
             </button>
           </form>
         )}
@@ -272,13 +274,14 @@ export default function NotesPage() {
           <div className="rounded-3xl border-2 border-dashed border-stone-300 p-8 text-center bg-white/50 mt-2">
             <span className="text-3xl block mb-2">📌</span>
             <h3 className="text-sm font-bold text-stone-700">עדיין אין פתקים על המקרר</h3>
-            <p className="text-xs text-stone-400 mt-1">השאירו הודעה קטנה וחמה אחד לשנייה</p>
+            <p className="text-xs text-stone-400 mt-1">אפשר להשאיר פתק למעלה</p>
           </div>
         ) : (
           <div className="space-y-5 pt-2">
             {notes.map((note, index) => {
               const style = COLOR_STYLES[note.color] ?? COLOR_STYLES.yellow;
               const rotation = index % 2 === 0 ? "-rotate-1" : "rotate-1";
+              const confirming = confirmDeleteId === note.id;
 
               return (
                 <div
@@ -292,13 +295,35 @@ export default function NotesPage() {
                     📍
                   </div>
 
-                  <button
-                    onClick={() => deleteNote(note.id)}
-                    className="absolute top-3 left-3 text-black/30 text-xs"
-                    aria-label="מחק פתק"
-                  >
-                    ✕
-                  </button>
+                  {!confirming && (
+                    <button
+                      onClick={() => setConfirmDeleteId(note.id)}
+                      className="absolute top-3 left-3 text-black/30 text-xs"
+                      aria-label="מחקי פתק"
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  {confirming && (
+                    <div className="flex items-center justify-between rounded-xl bg-white/90 mb-3 px-3 py-2">
+                      <span className="text-xs text-stone-700">למחוק את הפתק?</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-xs font-semibold text-stone-600"
+                        >
+                          בטלי
+                        </button>
+                        <button
+                          onClick={() => deleteNote(note.id)}
+                          className="text-xs font-bold text-white bg-red-500 rounded-lg px-3 py-1.5"
+                        >
+                          מחקי
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap mt-1 pl-4">
                     <span className="ml-1">{note.emoji}</span>״{note.content}״

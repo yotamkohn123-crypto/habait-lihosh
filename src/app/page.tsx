@@ -114,6 +114,11 @@ export default function HomePage() {
   const recentExpenses = expenses.slice(0, 4);
 
   const monthLabel = new Date().toLocaleDateString("he-IL", { month: "long" });
+  const todayLabel = new Date().toLocaleDateString("he-IL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   if (loading || expensesLoading) {
     return (
@@ -162,9 +167,9 @@ export default function HomePage() {
       <div className="px-4 pt-4 pb-6 space-y-4">
         <div className="flex items-center justify-between px-1">
           <div>
-            <p className="text-xs text-stone-400 font-medium">יום נעים ומלא שלווה 🌿</p>
+            <p className="text-xs text-stone-400 font-medium">{todayLabel}</p>
             <h2 className="text-xl font-extrabold text-stone-900 tracking-tight">
-              היי {identity ?? ""}, מה קורה בבית?
+              היי {identity ?? ""}
             </h2>
           </div>
           <button
@@ -216,7 +221,7 @@ export default function HomePage() {
               <textarea
                 value={noteDraft}
                 onChange={(e) => setNoteDraft(e.target.value)}
-                placeholder="מה תרצה להשאיר לה/לו?"
+                placeholder="מה להשאיר בפתק?"
                 rows={3}
                 autoFocus
                 className="w-full rounded-xl border border-amber-200 bg-white/80 p-2.5 text-sm text-stone-800 outline-none focus:ring-1 focus:ring-amber-400 resize-none"
@@ -250,7 +255,7 @@ export default function HomePage() {
                   onClick={() => setEditingNote(true)}
                   className="text-amber-900 font-bold hover:underline"
                 >
-                  החלף פתק ✏️
+                  החליפי פתק ✏️
                 </button>
               </div>
             </>
@@ -261,7 +266,7 @@ export default function HomePage() {
                 onClick={() => setEditingNote(true)}
                 className="text-amber-900 font-bold text-[11px] hover:underline"
               >
-                כתבו אחד ✏️
+                כתבי פתק ✏️
               </button>
             </div>
           )}
@@ -280,7 +285,7 @@ export default function HomePage() {
                 </div>
               </div>
               <span className="rounded-2xl bg-rose-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm">
-                ללוח ‹
+                עברי ללוח ‹
               </span>
             </div>
           </Link>
@@ -300,7 +305,7 @@ export default function HomePage() {
               </div>
             </div>
             <span className="rounded-2xl bg-amber-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm">
-              לרשימה ‹
+              עברי לרשימה ‹
             </span>
           </div>
         </Link>
@@ -316,14 +321,14 @@ export default function HomePage() {
                 {chores.filter((c) => c.is_completed).length}/{chores.length} בוצעו
               </span>
               <Link href="/chores" className="text-xs font-bold text-primary hover:underline">
-                הכול ‹
+                הציגי הכול ‹
               </Link>
             </div>
           </div>
 
           {chores.length === 0 ? (
             <p className="text-xs text-stone-400 text-center py-3">
-              עדיין אין מטלות מוגדרות
+              אין עדיין מטלות. אפשר להוסיף אחת בעמוד המטלות.
             </p>
           ) : (
             <div className="space-y-1.5">
@@ -377,18 +382,18 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-stone-900">הוצאות שוטפות אחרונות</h2>
-              <p className="text-[11px] text-stone-400">מה שרשמתם בימים האחרונים</p>
+              <p className="text-[11px] text-stone-400">מה שנרשם בימים האחרונים</p>
             </div>
             <div className="flex items-center gap-3">
               <Link href="/expenses" className="text-xs font-bold text-primary hover:underline">
-                הכול ‹
+                הציגי הכול ‹
               </Link>
             </div>
           </div>
 
           {recentExpenses.length === 0 ? (
             <p className="text-xs text-stone-400 text-center py-3">
-              עדיין אין הוצאות החודש
+              אין עדיין הוצאות החודש. אפשר להוסיף אחת למעלה.
             </p>
           ) : (
             <div className="space-y-2 pt-1">
