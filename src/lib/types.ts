@@ -88,4 +88,29 @@ export interface AppSettings {
   show_money_analogies: boolean;
   helper_name: string | null;
   meal_reminder_time: string | null;
+  last_meal_reminder_sent: string | null;
 }
+
+export interface Food {
+  id: string;
+  created_at: string;
+  name: string;
+  ingredients: string | null;
+  steps: string | null;
+  estimated_cost: number | null;
+  is_no_cook: boolean;
+}
+
+export interface WeeklyMenuEntry {
+  day_of_week: number;
+  food_id: string | null;
+}
+
+export interface UsualShoppingItem {
+  id: string;
+  created_at: string;
+  name: string;
+  category: string;
+}
+
+export const WEEKDAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];

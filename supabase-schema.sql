@@ -92,10 +92,33 @@ create table app_settings (
   show_money_analogies boolean not null default true,
   helper_name text,
   meal_reminder_time text,
+  last_meal_reminder_sent date,
   constraint single_row check (id = 1)
 );
 
 insert into app_settings (id) values (1);
+
+create table foods (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  name text not null,
+  ingredients text,
+  steps text,
+  estimated_cost numeric,
+  is_no_cook boolean not null default false
+);
+
+create table weekly_menu (
+  day_of_week int primary key,
+  food_id uuid references foods(id) on delete set null
+);
+
+create table usual_shopping_items (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  name text not null,
+  category text not null default 'כללי'
+);
 
 alter publication supabase_realtime add table members;
 alter publication supabase_realtime add table shopping_items;
@@ -106,3 +129,6 @@ alter publication supabase_realtime add table note_reactions;
 alter publication supabase_realtime add table expenses;
 alter publication supabase_realtime add table events;
 alter publication supabase_realtime add table app_settings;
+alter publication supabase_realtime add table foods;
+alter publication supabase_realtime add table weekly_menu;
+alter publication supabase_realtime add table usual_shopping_items;

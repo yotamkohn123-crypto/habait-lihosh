@@ -5,7 +5,11 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { useIdentity } from "@/lib/identity-context";
 import { useOnlinePresence } from "@/lib/use-presence";
+import { useAppSettings } from "@/lib/use-app-settings";
+import { useFoods } from "@/lib/use-foods";
 import { ShoppingItem } from "@/lib/types";
+import { FIXED_BILLS } from "@/lib/expense-categories";
+import { startOfWeekISO, nextSundayLabel } from "@/lib/date";
 import { memberColor, memberInitial } from "@/lib/members";
 import { notifyOthers } from "@/lib/push";
 
@@ -25,11 +29,29 @@ function isRecent(createdAt: string) {
 export default function ShoppingPage() {
   const { identity, setIdentity, members } = useIdentity();
   const onlineCount = useOnlinePresence();
+  const { settings } = useAppSettings();
+  const { foods } = useFoods();
   const [items, setItems] = useState<ShoppingItem[]>([]);
+  const [weekSpent, setWeekSpent] = useState(0);
   const [newItemName, setNewItemName] = useState("");
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].name);
   const [showBought, setShowBought] = useState(true);
+  const [confirmClearBought, setConfirmClearBought] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  async function loadWeekSpent() {
+    const fixedBillNames = new Set(FIXED_BILLS.map((b) => b.name));
+    const { data } = await supabase
+      .from("expenses")
+      .select("title, amount, date")
+      .gte("date", startOfWeekISO());
+    if (data) {
+      const sum = data
+        .filter((e) => !fixedBillNames.has(e.title))
+        .reduce((s, e) => s + Number(e.amount), 0);
+      setWeekSpent(sum);
+    }
+  }
 
   async function loadItems() {
     const { data } = await supabase
@@ -42,6 +64,7 @@ export default function ShoppingPage() {
 
   useEffect(() => {
     loadItems();
+    loadWeekSpent();
 
     const channel = supabase
       .channel("shopping-list-updates")
@@ -50,6 +73,7 @@ export default function ShoppingPage() {
         { event: "*", schema: "public", table: "shopping_items" },
         loadItems
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "expenses" }, loadWeekSpent)
       .subscribe();
 
     return () => {
@@ -80,7 +104,10 @@ export default function ShoppingPage() {
 
   async function clearBought() {
     await supabase.from("shopping_items").delete().eq("is_bought", true);
+    setConfirmClearBought(false);
   }
+
+  const noCookFoods = foods.filter((f) => f.is_no_cook).slice(0, 5);
 
   const unboughtItems = items.filter((i) => !i.is_bought);
   const boughtItems = items.filter((i) => i.is_bought);
@@ -157,13 +184,58 @@ export default function ShoppingPage() {
           <span className="text-xs text-stone-400">הבית שלנו</span>
         </div>
 
-        <form onSubmit={addItem} className="flex gap-2">
-          <button
-            type="submit"
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-white shadow-sm active:scale-95 transition flex-shrink-0"
+        {settings.weekly_budget > 0 && (
+          <div className="rounded-2xl bg-white border border-stone-100 shadow-sm px-4 py-2.5 flex items-center justify-between text-xs">
+            <span className="text-stone-600">
+              השבוע נשארו עד יום ראשון ה-{nextSundayLabel()}
+            </span>
+            <span className="font-bold text-primary">
+              ₪{Math.max(settings.weekly_budget - weekSpent, 0).toLocaleString()}
+            </span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-2">
+          <Link
+            href="/shopping/foods"
+            className="rounded-2xl bg-white border border-stone-100 shadow-sm p-3 text-center active:scale-95 transition"
           >
-            +
-          </button>
+            <span className="text-xl block mb-1">🍝</span>
+            <span className="text-[11px] font-bold text-stone-700">המאכלים שלי</span>
+          </Link>
+          <Link
+            href="/shopping/menu"
+            className="rounded-2xl bg-white border border-stone-100 shadow-sm p-3 text-center active:scale-95 transition"
+          >
+            <span className="text-xl block mb-1">📅</span>
+            <span className="text-[11px] font-bold text-stone-700">התפריט השבועי</span>
+          </Link>
+          <Link
+            href="/shopping/usual"
+            className="rounded-2xl bg-white border border-stone-100 shadow-sm p-3 text-center active:scale-95 transition"
+          >
+            <span className="text-xl block mb-1">🔁</span>
+            <span className="text-[11px] font-bold text-stone-700">הקנייה הרגילה</span>
+          </Link>
+        </div>
+
+        {noCookFoods.length > 0 && (
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 space-y-2">
+            <p className="text-xs font-bold text-amber-900">ארוחות קלות ליום קשה</p>
+            <div className="flex gap-1.5 flex-wrap">
+              {noCookFoods.map((f) => (
+                <span
+                  key={f.id}
+                  className="rounded-xl bg-white border border-amber-200 px-3 py-1.5 text-xs font-medium text-stone-700"
+                >
+                  {f.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={addItem} className="flex gap-2">
           <input
             type="text"
             placeholder="מה צריך לקנות לבית?"
@@ -171,6 +243,12 @@ export default function ShoppingPage() {
             onChange={(e) => setNewItemName(e.target.value)}
             className="w-full h-12 flex-1 rounded-2xl border border-stone-200 bg-white px-4 text-sm text-stone-800 placeholder-stone-400 shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
           />
+          <button
+            type="submit"
+            className="h-12 px-4 flex items-center justify-center rounded-2xl bg-primary text-sm font-bold text-white shadow-sm active:scale-95 transition flex-shrink-0"
+          >
+            הוסיפי
+          </button>
         </form>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
@@ -261,7 +339,7 @@ export default function ShoppingPage() {
 
           {unboughtItems.length === 0 && (
             <p className="text-sm text-stone-400 text-center py-6">
-              הרשימה ריקה כרגע 🌿
+              הרשימה ריקה. אפשר להוסיף פריט למעלה.
             </p>
           )}
         </div>
@@ -279,12 +357,29 @@ export default function ShoppingPage() {
                   {showBought ? "▴" : "▾"}
                 </span>
               </button>
-              <button
-                onClick={clearBought}
-                className="text-[11px] font-medium text-stone-400 underline"
-              >
-                נקה הכל
-              </button>
+              {!confirmClearBought ? (
+                <button
+                  onClick={() => setConfirmClearBought(true)}
+                  className="text-[11px] font-medium text-stone-400 underline"
+                >
+                  מחקי פריטים שנקנו
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setConfirmClearBought(false)}
+                    className="text-[11px] font-semibold text-stone-500"
+                  >
+                    בטלי
+                  </button>
+                  <button
+                    onClick={clearBought}
+                    className="text-[11px] font-bold text-white bg-red-500 rounded-lg px-2 py-1"
+                  >
+                    מחקי הכל
+                  </button>
+                </div>
+              )}
             </div>
 
             {showBought && (
@@ -320,7 +415,7 @@ export default function ShoppingPage() {
           className="pointer-events-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 py-3.5 text-sm font-bold text-white shadow-lg active:scale-[0.98] transition"
         >
           <span className="text-lg">🛒</span>
-          <span>יוצאים לקנות (מעבר למצב סופר)</span>
+          <span>עברי למצב קנייה בסופר</span>
         </Link>
       </div>
     </div>

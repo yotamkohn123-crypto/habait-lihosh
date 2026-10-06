@@ -11,6 +11,7 @@ const DEFAULTS: AppSettings = {
   show_money_analogies: true,
   helper_name: null,
   meal_reminder_time: null,
+  last_meal_reminder_sent: null,
 };
 
 export function useAppSettings() {

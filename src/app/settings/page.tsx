@@ -4,6 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAppSettings } from "@/lib/use-app-settings";
 
+const MEAL_REMINDER_SLOTS = [
+  "07:00",
+  "08:00",
+  "09:00",
+  "12:00",
+  "13:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+];
+
 export default function SettingsPage() {
   const { settings, loading, updateSettings } = useAppSettings();
 
@@ -40,11 +52,6 @@ export default function SettingsPage() {
   async function saveHelperName() {
     await updateSettings({ helper_name: helperName.trim() || null });
     showSaved("helper");
-  }
-
-  async function saveMealReminderTime() {
-    await updateSettings({ meal_reminder_time: mealReminderTime || null });
-    showSaved("reminder");
   }
 
   async function toggleAnalogies() {
@@ -149,21 +156,29 @@ export default function SettingsPage() {
           <label className="text-xs font-semibold text-stone-700 block">
             תזכורת לארוחה בשעה קבועה (אופציונלי)
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="time"
-              value={mealReminderTime}
-              onChange={(e) => setMealReminderTime(e.target.value)}
-              className="flex-1 h-11 rounded-2xl border border-stone-300 bg-white px-3.5 text-sm text-stone-800 focus:outline-none focus:border-primary"
-            />
-            <button
-              type="button"
-              onClick={saveMealReminderTime}
-              className="rounded-2xl bg-primary px-4 h-11 text-xs font-bold text-white"
-            >
-              {savedField === "reminder" ? "נשמר ✓" : "שמרי"}
-            </button>
-          </div>
+          <p className="text-[11px] text-stone-400">
+            אפשר לבחור שעה עגולה. ההודעה תגיע בשעה הזו, פלוס או מינוס קצת.
+          </p>
+          <select
+            value={mealReminderTime}
+            onChange={(e) => {
+              const value = e.target.value;
+              setMealReminderTime(value);
+              updateSettings({ meal_reminder_time: value || null });
+              showSaved("reminder");
+            }}
+            className="w-full h-11 rounded-2xl border border-stone-300 bg-white px-3.5 text-sm text-stone-800 focus:outline-none focus:border-primary"
+          >
+            <option value="">בלי תזכורת</option>
+            {MEAL_REMINDER_SLOTS.map((slot) => (
+              <option key={slot} value={slot}>
+                {slot}
+              </option>
+            ))}
+          </select>
+          {savedField === "reminder" && (
+            <p className="text-[11px] font-semibold text-primary">נשמר ✓</p>
+          )}
         </div>
 
         <div className="rounded-3xl bg-white p-4 shadow-sm border border-stone-100 flex items-center justify-between">
