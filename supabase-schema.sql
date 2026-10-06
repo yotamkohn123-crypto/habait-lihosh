@@ -22,7 +22,20 @@ create table chores (
   title text not null,
   assigned_to text not null,
   is_completed boolean not null default false,
-  due_date text
+  due_date text,
+  recurrence text,
+  recurrence_day int,
+  estimated_minutes int
+);
+
+create table chore_steps (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  chore_id uuid not null references chores(id) on delete cascade,
+  text text not null,
+  estimated_minutes int,
+  is_completed boolean not null default false,
+  order_index int not null default 0
 );
 
 create table fridge_notes (
@@ -72,10 +85,24 @@ create table push_subscriptions (
   auth text not null
 );
 
+create table app_settings (
+  id int primary key default 1,
+  monthly_income numeric not null default 0,
+  weekly_budget numeric not null default 0,
+  show_money_analogies boolean not null default true,
+  helper_name text,
+  meal_reminder_time text,
+  constraint single_row check (id = 1)
+);
+
+insert into app_settings (id) values (1);
+
 alter publication supabase_realtime add table members;
 alter publication supabase_realtime add table shopping_items;
 alter publication supabase_realtime add table chores;
+alter publication supabase_realtime add table chore_steps;
 alter publication supabase_realtime add table fridge_notes;
 alter publication supabase_realtime add table note_reactions;
 alter publication supabase_realtime add table expenses;
 alter publication supabase_realtime add table events;
+alter publication supabase_realtime add table app_settings;

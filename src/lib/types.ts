@@ -27,6 +27,8 @@ export interface ShoppingItem {
   added_by: string;
 }
 
+export type Recurrence = "יומי" | "שבועי" | "חודשי";
+
 export interface Chore {
   id: string;
   created_at: string;
@@ -34,6 +36,19 @@ export interface Chore {
   assigned_to: string;
   is_completed: boolean;
   due_date: string | null;
+  recurrence: Recurrence | null;
+  recurrence_day: number | null;
+  estimated_minutes: number | null;
+}
+
+export interface ChoreStep {
+  id: string;
+  created_at: string;
+  chore_id: string;
+  text: string;
+  estimated_minutes: number | null;
+  is_completed: boolean;
+  order_index: number;
 }
 
 export interface FridgeNote {
