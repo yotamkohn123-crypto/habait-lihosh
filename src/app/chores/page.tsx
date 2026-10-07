@@ -461,8 +461,38 @@ export default function ChoresPage() {
                   )}
                 </div>
               </div>
+              {confirmDeleteId !== nextChore.id && (
+                <button
+                  onClick={() => setConfirmDeleteId(nextChore.id)}
+                  className="text-stone-300 px-1 flex-shrink-0"
+                  aria-label="מחקי מטלה"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
+            {confirmDeleteId === nextChore.id && (
+              <div className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2">
+                <span className="text-xs text-stone-600">למחוק את המטלה הזו?</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setConfirmDeleteId(null)}
+                    className="text-xs font-semibold text-stone-500"
+                  >
+                    בטלי
+                  </button>
+                  <button
+                    onClick={() => deleteChore(nextChore.id)}
+                    className="text-xs font-bold text-white bg-red-500 rounded-lg px-3 py-1.5"
+                  >
+                    מחקי
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {confirmDeleteId !== nextChore.id && (
             <ChoreSteps
               choreId={nextChore.id}
               steps={stepsFor(nextChore.id)}
@@ -474,6 +504,7 @@ export default function ChoresPage() {
               onNewStepMinutesChange={setNewStepMinutes}
               onAddStep={() => addStep(nextChore.id)}
             />
+            )}
           </div>
         )}
 
@@ -672,46 +703,77 @@ function ChoreSteps({
   onNewStepMinutesChange: (v: string) => void;
   onAddStep: () => void;
 }) {
+  const [confirmDeleteStepId, setConfirmDeleteStepId] = useState<string | null>(null);
+
   return (
     <div className="space-y-1.5 pt-1">
-      {steps.map((step) => (
-        <div
-          key={step.id}
-          className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2"
-        >
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onToggleStep(step)}
-              className={`flex h-5 w-5 items-center justify-center rounded-full border transition flex-shrink-0 ${
-                step.is_completed
-                  ? "bg-emerald-600 border-emerald-600 text-white"
-                  : "border-stone-300 bg-white"
-              }`}
-            >
-              {step.is_completed && <span className="text-[10px]">✓</span>}
-            </button>
-            <span
-              className={`text-xs ${
-                step.is_completed ? "line-through text-stone-400" : "text-stone-700"
-              }`}
-            >
-              {step.text}
-            </span>
-            {step.estimated_minutes !== null && (
-              <span className="text-[10px] text-stone-400">~{step.estimated_minutes} דק׳</span>
+      {steps.map((step) => {
+        const confirming = confirmDeleteStepId === step.id;
+        return (
+          <div key={step.id} className="rounded-xl bg-stone-50 px-3 py-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onToggleStep(step)}
+                  className={`flex h-5 w-5 items-center justify-center rounded-full border transition flex-shrink-0 ${
+                    step.is_completed
+                      ? "bg-emerald-600 border-emerald-600 text-white"
+                      : "border-stone-300 bg-white"
+                  }`}
+                >
+                  {step.is_completed && <span className="text-[10px]">✓</span>}
+                </button>
+                <span
+                  className={`text-xs ${
+                    step.is_completed ? "line-through text-stone-400" : "text-stone-700"
+                  }`}
+                >
+                  {step.text}
+                </span>
+                {step.estimated_minutes !== null && (
+                  <span className="text-[10px] text-stone-400">~{step.estimated_minutes} דק׳</span>
+                )}
+              </div>
+              {!confirming && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteStepId(step.id)}
+                  className="text-stone-300 text-xs px-1"
+                  aria-label="מחקי שלב"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {confirming && (
+              <div className="flex items-center justify-between pt-1.5">
+                <span className="text-[11px] text-stone-600">למחוק את השלב הזה?</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteStepId(null)}
+                    className="text-[11px] font-semibold text-stone-500"
+                  >
+                    בטלי
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onDeleteStep(step.id);
+                      setConfirmDeleteStepId(null);
+                    }}
+                    className="text-[11px] font-bold text-white bg-red-500 rounded-lg px-2.5 py-1"
+                  >
+                    מחקי
+                  </button>
+                </div>
+              </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => onDeleteStep(step.id)}
-            className="text-stone-300 text-xs px-1"
-            aria-label="מחקי שלב"
-          >
-            ✕
-          </button>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="flex items-center gap-1.5 pt-1">
         <input

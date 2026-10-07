@@ -152,6 +152,20 @@ export default function BottomNav() {
                     <span className="text-[10px] text-stone-400">מי עושה את זה היום?</span>
                   </div>
                 </button>
+
+                <Link
+                  href="/calendar"
+                  onClick={closeSheet}
+                  className="flex flex-col items-center gap-2 rounded-2xl bg-white p-4 shadow-sm border border-stone-200/80 active:scale-95 transition text-center"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-2xl">
+                    📅
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-stone-900 block">לוח שנה</span>
+                    <span className="text-[10px] text-stone-400">ימי הולדת ואירועים</span>
+                  </div>
+                </Link>
               </div>
             )}
 
@@ -188,7 +202,7 @@ export default function BottomNav() {
             {view === "add_note" && (
               <form onSubmit={addNote} className="pt-4 space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold text-stone-700">
-                  <span>📌 פתק אהבה / תזכורת חמה על המקרר:</span>
+                  <span>📌 איזה פתק להשאיר על המקרר?</span>
                   <button
                     type="button"
                     onClick={() => setView("menu")}
@@ -200,7 +214,7 @@ export default function BottomNav() {
                 <textarea
                   required
                   rows={3}
-                  placeholder="כתבו משהו כיפי ומתוק לבן/בת הזוג..."
+                  placeholder="למשל: קפה עלי הבוקר, תזכורת לקחת תיק לבית ספר..."
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
                   className="w-full rounded-2xl border border-stone-300 bg-white p-3 text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-rose-400 shadow-inner resize-none"
